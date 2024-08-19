@@ -20,6 +20,7 @@ def create_tables(conn):
         name TEXT NOT NULL,
         description TEXT,
         quantity INTEGER NOT NULL DEFAULT 0,
+        quantity_unit TEXT,
         price REAL NOT NULL,
         reorder_point INTEGER NOT NULL
     )
