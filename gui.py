@@ -92,44 +92,43 @@ class InventoryGUI:
         # Populate item list
         self.update_item_list()    
 
-    def add_item():
-            # Connect to the database
-            conn = sqlite3.connect('inventory.db')
-            cursor = conn.cursor()
+def add_item(self):
+    # Connect to the database
+    conn = sqlite3.connect('inventory.db')
+    cursor = conn.cursor()
 
-            # Get item data from entry fields
-            item_name = item_name_entry.get()
-            # ... get other item data
+    # Get item data from entry fields
+    item_name = self.item_name_entry.get()
+    # ... get other item data
 
-            # Insert item into the database
-            cursor.execute("INSERT INTO items (name, description, ...) VALUES (?, ?, ...)", (item_name, ...))
+    # Insert item into the database
+    cursor.execute("INSERT INTO items (name, description, ...) VALUES (?, ?, ...)", (item_name, ...))
 
-            conn.commit()
-            conn.close()
+    conn.commit()
+    conn.close()
 
-            update_item_list()
+    self.update_item_list()
 
-    def update_item_list(self):
-        # Clear existing items in the list
-            self.item_list.delete(*self.item_list.get_children())
+def update_item_list(self):
+    # Clear existing items in the list
+    self.item_list.delete(*self.item_list.get_children())
 
-            # Connect to the database
-            conn = sqlite3.connect('inventory.db')
-            cursor = conn.cursor()
+    # Connect to the database
+    conn = sqlite3.connect('inventory.db')
+    cursor = conn.cursor()
 
-            # Retrieve items from the database
-            cursor.execute("SELECT * FROM items")
-            items = cursor.fetchall()
+    # Retrieve items from the database
+    cursor.execute("SELECT * FROM items")
+    items = cursor.fetchall()
 
-            # Populate the item list
-            for item in items:
-                self.item_list.insert('', 'end', values=item)
+    # Populate the item list
+    for item in items:
+        self.item_list.insert('', 'end', values=item)
 
-            conn.close()
+    conn.close()
 
-            add_item_button['command'] = self.add_item
-
-
+    # Fix for the Pylance warning: "add_item_button" is not defined
+    self.add_item_button['command'] = self.add_item
 def create_gui(color_scheme=None):
     root = tk.Tk()
     root.title("Inventory Management System")
