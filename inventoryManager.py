@@ -4,7 +4,7 @@ import vendorsDB
 import orderDB
 import deliveryDB
 import invoiceDB
-import gui
+import datetime
 
 def create_database():
   """Creates the database and necessary tables."""
@@ -16,14 +16,15 @@ def create_database():
   invoiceDB.create_table(conn)
   conn.close()
 
+#update add_item function to interact with price history table
 def add_item(item_data):
-  """Adds a new item to the inventory database.
-
-  Args:
-    item_data: A dictionary containing item information like name, description, quantity, price, and reorder point.
-  """
+  cursor = conn.cursor()
   conn = sqlite3.connect('inventory.db')
   itemsDB.add_item(conn, item_data)
+
+  cursor.execute("INSERT INTO item_price_history (item_id, new_price, change_date) VALUES (?, ?, ?)",
+                   (item_data['id'], item_data['price'], datetime.datetime.now()))
+  conn.commit()
   conn.close()
 
 def add_vendor(vendor_data):
