@@ -9,6 +9,7 @@ class ColorScheme:
         self.foreground = foreground
         self.accent = accent
 
+
 class InventoryGUI:
     def __init__(self, root):
         self.root = root
@@ -26,8 +27,7 @@ class InventoryGUI:
         # File menu
         file_menu = tk.Menu(menu_bar, tearoff=0)
         file_menu.add_command(label="Exit", command=self.root.quit)
-        menu_bar.add_cascade(label="File", menu=file_menu) 
-
+        menu_bar.add_cascade(label="File", menu=file_menu)
 
         # Edit menu
         edit_menu = tk.Menu(menu_bar, tearoff=0)
@@ -45,7 +45,7 @@ class InventoryGUI:
         content_frame = ttk.Frame(self.root)
         content_frame.pack(fill="both", expand=True)
 
-         # Create notebook for tabs
+        # Create notebook for tabs
         notebook = ttk.Notebook(content_frame)
         notebook.pack(fill="both", expand=True)
 
@@ -68,11 +68,13 @@ class InventoryGUI:
         item_description_label = ttk.Label(item_frame, text="Description:")
         item_description_entry = ttk.Entry(item_frame)
 
- # Add item button
+        # Add item button
         add_item_button = ttk.Button(item_frame, text="Add Item", command=self.add_item)
 
         # Item list
-        self.item_list = ttk.Treeview(item_frame, columns=("item_id", "name", "description", "quantity", "price"))
+        self.item_list = ttk.Treeview(
+            item_frame, columns=("item_id", "name", "description", "quantity", "price")
+        )
         self.item_list.heading("#0", text="Item ID")
         self.item_list.heading("item_id", text="Item ID")
         self.item_list.heading("name", text="Name")
@@ -80,7 +82,7 @@ class InventoryGUI:
         self.item_list.heading("quantity", text="Quantity")
         self.item_list.heading("price", text="Price")
 
-            # Grid layout for item elements
+        # Grid layout for item elements
         item_name_label.grid(row=0, column=0, sticky="w")
         item_name_entry.grid(row=0, column=1)
         item_description_label.grid(row=1, column=0, sticky="w")
@@ -90,44 +92,47 @@ class InventoryGUI:
         self.item_list.grid(row=3, column=0, columnspan=2, sticky="nsew")
 
         # Populate item list
-        self.update_item_list()    
+        self.update_item_list()
 
     def add_item():
-            # Connect to the database
-            conn = sqlite3.connect('inventory.db')
-            cursor = conn.cursor()
+        # Connect to the database
+        conn = sqlite3.connect("inventory.db")
+        cursor = conn.cursor()
 
-            # Get item data from entry fields
-            item_name = item_name_entry.get()
-            # ... get other item data
+        # Get item data from entry fields
+        item_name = item_name_entry.get()
+        # ... get other item data
 
-            # Insert item into the database
-            cursor.execute("INSERT INTO items (name, description, ...) VALUES (?, ?, ...)", (item_name, ...))
+        # Insert item into the database
+        cursor.execute(
+            "INSERT INTO items (name, description, ...) VALUES (?, ?, ...)",
+            (item_name, ...),
+        )
 
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
-            update_item_list()
+        update_item_list()
 
     def update_item_list(self):
         # Clear existing items in the list
-            self.item_list.delete(*self.item_list.get_children())
+        self.item_list.delete(*self.item_list.get_children())
 
-            # Connect to the database
-            conn = sqlite3.connect('inventory.db')
-            cursor = conn.cursor()
+        # Connect to the database
+        conn = sqlite3.connect("inventory.db")
+        cursor = conn.cursor()
 
-            # Retrieve items from the database
-            cursor.execute("SELECT * FROM items")
-            items = cursor.fetchall()
+        # Retrieve items from the database
+        cursor.execute("SELECT * FROM items")
+        items = cursor.fetchall()
 
-            # Populate the item list
-            for item in items:
-                self.item_list.insert('', 'end', values=item)
+        # Populate the item list
+        for item in items:
+            self.item_list.insert("", "end", values=item)
 
-            conn.close()
+        conn.close()
 
-            add_item_button['command'] = self.add_item
+        add_item_button["command"] = self.add_item
 
 
 def create_gui(color_scheme=None):
@@ -145,10 +150,12 @@ def create_gui(color_scheme=None):
 
     root.mainloop()
 
+
 def main():
     root = tk.Tk()
     create_gui()
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()
