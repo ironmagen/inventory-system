@@ -42,6 +42,18 @@ def create_tables(conn):
     )
     ''')
 
+
+    #table to explicitly track price history per item
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS item_price_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER,
+        new_price DECIMAL,
+        change_date DATETIME,
+        FOREIGN KEY (item_id) REFERENCES items(item_id)
+    )
+    ''')
+
     conn.commit()
     cursor.close()
 
