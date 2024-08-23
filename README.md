@@ -14,3 +14,8 @@ complete gui or google sheets API
 complete main module logic
 confirm report outputs and useability
 test for missing functionality
+create user access rules: employee-general, employee-count, manager, owner
+  employee general: view stock/ 86 reports, submit item requests
+  employee count: input real world inventory count
+  owner: view and download all reports and tables, all access except place or generate orders
+  manager: all access, place and create orders, receive/ override delivery
