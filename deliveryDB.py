@@ -15,6 +15,7 @@ def create_table(conn):
 
     cursor.execute("""
   CREATE TABLE IF NOT EXISTS deliveries (
+      vendor_id INTEGER REFERENCES vendors(vendor_id),
       delivery_id INTEGER PRIMARY KEY AUTOINCREMENT,
       delivery_date DATE NOT NULL,
       order_id INTEGER REFERENCES orders(order_id),
