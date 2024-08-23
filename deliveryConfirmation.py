@@ -1,6 +1,16 @@
 import sqlite3
 
 def record_delivery(delivery_data):
+  """Records a delivery, updating inventory and order status.
+
+    Args:
+        delivery_data (dict): A dictionary containing the following keys:
+            - order_id (int): The ID of the order being delivered.
+            - items (list): A list of dictionaries, each representing an item in the delivery.
+                - item_id (int): The ID of the item.
+                - quantity (int): The quantity of the item being delivered.
+                - confirmed_quantity (int, optional): The confirmed quantity of the item being delivered (default: None).
+    """
   conn = sqlite3.connect('inventory.db')
   cursor = conn.cursor()
 
