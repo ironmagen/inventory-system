@@ -10,7 +10,8 @@ item tables are updated, invoices are stored with vendor name, delivery date, in
 delivery statements then generated in .csv, .pdf, or spreadsheet format according to the user need
 
 to do:
-[complete gui or google sheets API0] web-based python flask interface, store to cloud
+
+[complete gui or google sheets API0] update trajectory: web-based python flask interface, store to cloud
 
 complete main module logic
 
