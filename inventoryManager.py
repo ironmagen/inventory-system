@@ -24,8 +24,17 @@ def add_item(item_data):
     Args:
       item_data: A dictionary containing item information like name, description, quantity, price, and reorder point.
     """
+    cursor = conn.cursor()
     conn = sqlite3.connect("inventory.db")
     itemsDB.add_item(conn, item_data)
+    cursor.execute(
+       
+        "INSERT INTO item_price_history (item_id, new_price, change_date) VALUES (?, ?, ?)",
+        (item_data['id'], item_data['price'], datetime.datetime.now())
+        
+    )
+    
+    conn.commit()
     conn.close()
 
 
