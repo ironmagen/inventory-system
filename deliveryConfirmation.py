@@ -4,8 +4,6 @@ def record_delivery(delivery_data):
   conn = sqlite3.connect('inventory.db')
   cursor = conn.cursor()
 
-  # ... previous code for checking order existence
-
   # Retrieve ordered quantities
   cursor.execute('SELECT item_id, quantity FROM order_items WHERE order_id = ?', (delivery_data['order_id'],))
   order_items = cursor.fetchall()
