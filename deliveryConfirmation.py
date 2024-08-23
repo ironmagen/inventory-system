@@ -2,10 +2,20 @@ import sqlite3
 
 
 def record_delivery(delivery_data):
+    """Records a delivery, updating inventory and order status.
+
+    Args:
+        delivery_data (dict): A dictionary containing the following keys:
+            - order_id (int): The ID of the order being delivered.
+            - items (list): A list of dictionaries, each representing an item in the delivery.
+                - item_id (int): The ID of the item.
+                - quantity (int): The quantity of the item being delivered.
+                - confirmed_quantity (int, optional): The confirmed quantity of the item being delivered (default: None).
+    """
+    
     conn = sqlite3.connect("inventory.db")
     cursor = conn.cursor()
 
-    # ... previous code for checking order existence
 
     # Retrieve ordered quantities
     cursor.execute(
@@ -19,10 +29,14 @@ def record_delivery(delivery_data):
     for item in delivery_data["items"]:
         item_id = item["item_id"]
         delivered_quantity = item["quantity"]
+        confirmed_quantity = item.get("confirmed_quantity", None)
 
         if item_id in order_item_map:
             ordered_quantity = order_item_map[item_id]
-            if delivered_quantity > ordered_quantity:
+            if confirmed_quantity is None:
+                confirmed_quantity = delivered_quantity
+                
+            if confirmed_quantity > ordered_quantity:
                 raise ValueError(
                     f"Delivered quantity exceeds ordered quantity for item {item_id}"
                 )
