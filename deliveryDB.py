@@ -45,7 +45,6 @@ def record_delivery(conn, delivery_data):
     # Insert delivery record
     cursor.execute("INSERT INTO deliveries (delivery_date, order_id) VALUES (?, ?)", (delivery_date, order_id))
 
-    # ... rest of your logic with appropriate PostgreSQL syntax
 
     conn.commit()
     cursor.close()
