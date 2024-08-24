@@ -1,10 +1,14 @@
-def create_tables(conn):
+import datetime
+import psycopg2
+
+
+def create_vendor_tables(conn):
     """Creates tables related to vendors in the database."""
     cursor = conn.cursor()
 
     # Define SQL statements to create vendor tables (replace with your specific table structure)
     cursor.execute("""CREATE TABLE IF NOT EXISTS vendors (
-        vendor_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        vendor_id SERIAL PRIMARY KEY,
         vendor_name TEXT NOT NULL,
         contact_name TEXT,
         email TEXT,
@@ -21,11 +25,11 @@ def place_order(conn, order_data):
     """Places a new order in the database.
 
     Args:
-      conn: The database connection.
-      order_data: A dictionary containing order information like items, vendor, order date, etc.
+        conn: The database connection.
+        order_data: A dictionary containing order information like items, vendor, order date, etc.
 
     Raises:
-      ValueError: If order data is invalid or there's an issue with item availability.
+        ValueError: If order data is invalid or there's an issue with item availability.
     """
     cursor = conn.cursor()
 
