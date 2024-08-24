@@ -1,68 +1,70 @@
-import sqlite3
-
+import psycopg2
 
 def create_audit_log_table(conn):
     """Creates the inventory_adjustments table for auditing purposes."""
     cursor = conn.cursor()
 
     cursor.execute("""
-  CREATE TABLE IF NOT EXISTS inventory_adjustments (
-      adjustment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-      user_id INTEGER,  # Foreign key to users table (if applicable)
-      item_id INTEGER REFERENCES items(item_id),
-      previous_quantity INTEGER,
-      new_quantity INTEGER,P
-      quantity_difference INTEGER,
-      reason TEXT,
-      category_id INTEGER,  # Foreign key to categories table (optional)
-      vendor_id INTEGER  # Foreign key to vendors table (optional)
-  )
-  """)
+    CREATE TABLE IF NOT EXISTS inventory_adjustments (
+        adjustment_id SERIAL PRIMARY KEY,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        user_id INTEGER,  # Foreign key to users table (if applicable)
+        item_id INTEGER REFERENCES items(item_id),
+        previous_quantity INTEGER,
+        new_quantity INTEGER,
+        quantity_difference INTEGER,
+        reason TEXT,
+        category_id INTEGER,  # Foreign key to categories table (optional)
+        vendor_id INTEGER  # Foreign key to vendors table (optional)
+    )
+    """)
 
     conn.commit()
     cursor.close()
-
 
 def create_category_totals_table(conn):
     """Creates the category_totals table for tracking category quantities."""
     cursor = conn.cursor()
 
     cursor.execute("""
-  CREATE TABLE IF NOT EXISTS category_totals (
-      category_id INTEGER PRIMARY KEY REFERENCES categories(category_id),
-      total_quantity INTEGER
-  )
-  """)
+    CREATE TABLE IF NOT EXISTS category_totals (
+        category_id INTEGER PRIMARY KEY REFERENCES categories(category_id),
+        total_quantity INTEGER
+    )
+    """)
 
     conn.commit()
     cursor.close()
-
 
 def create_vendor_totals_table(conn):
     """Creates the vendor_totals table for tracking vendor quantities."""
     cursor = conn.cursor()
 
     cursor.execute("""
-  CREATE TABLE IF NOT EXISTS vendor_totals (
-      vendor_id INTEGER PRIMARY KEY REFERENCES vendors(vendor_id),
-      total_quantity INTEGER
-  )
-  """)
+    CREATE TABLE IF NOT EXISTS vendor_totals (
+        vendor_id INTEGER PRIMARY KEY REFERENCES vendors(vendor_id),
+        total_quantity INTEGER
+    )
+    """)
 
     conn.commit()
     cursor.close()
-
 
 def adjustInventory(adjustments, userId=None):
     """Adjusts inventory quantities based on user input.
 
     Args:
-      adjustments: A list of dictionaries, each containing 'itemId', 'newQuantity', 'category' (optional), and 'vendor' (optional).
-      userId: The ID of the user making the adjustment (optional).
+        adjustments: A list of dictionaries, each containing 'itemId', 'newQuantity', 'category' (optional), and 'vendor' (optional).
+        userId: The ID of the user making the adjustment (optional).
     """
 
-    conn = sqlite3.connect("inventory.db")
+    conn = psycopg2.connect(
+        dbname="your_database_name",
+        user="your_username",
+        password="your_password",
+        host="your_host",
+        port="your_port"
+    )
     cursor = conn.cursor()
 
     create_audit_log_table(conn)
@@ -93,9 +95,9 @@ def adjustInventory(adjustments, userId=None):
         # Log adjustment
         cursor.execute(
             """
-      INSERT INTO inventory_adjustments (user_id, item_id, previous_quantity, new_quantity, quantity_difference, category_id, vendor_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    """,
+            INSERT INTO inventory_adjustments (user_id, item_id, previous_quantity, new_quantity, quantity_difference, category_id, vendor_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
             (
                 userId,
                 itemId,
