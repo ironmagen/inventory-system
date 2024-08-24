@@ -1,4 +1,4 @@
-import sqlite3
+import psycopg2
 
 
 def record_sales(sales_data):
@@ -6,10 +6,16 @@ def record_sales(sales_data):
     Records sales data and updates inventory quantities.
 
     Args:
-      sales_data: A list of dictionaries, each containing 'date', 'category', 'sales_items' (list of dictionaries with 'item_id', 'quantity', and 'recipe_id' (optional)).
+        sales_data: A list of dictionaries, each containing 'date', 'category', 'sales_items' (list of dictionaries with 'item_id', 'quantity', and 'recipe_id' (optional)).
     """
 
-    conn = sqlite3.connect("inventory.db")
+    conn = psycopg2.connect(
+        dbname="your_database_name",
+        user="your_username",
+        password="your_password",
+        host="your_host",
+        port="your_port"
+    )
     cursor = conn.cursor()
 
     # Create prepared statements
@@ -60,4 +66,4 @@ def record_sales(sales_data):
                 )
 
     conn.commit()
-    conn.close()
+    cursor.close()
