@@ -1,16 +1,23 @@
-import sqlite3
+import psycopg2
 
 
-def verify_delivery(order_id, delivered_items):
+def verify_delivery(order_id, delivered_items, db_name, user, password, host, port):
     """
     Verifies a delivery based on user input.
 
     Args:
-      order_id: The ID of the order.
-      delivered_items: A list of dictionaries, each containing 'item_id' and 'quantity'.
+        order_id: The ID of the order.
+        delivered_items: A list of dictionaries, each containing 'item_id' and 'quantity'.
+        db_name (str): PostgreSQL database name.
+        user (str): Database username.
+        password (str): Database password.
+        host (str): Database host.
+        port (int): Database port.
     """
 
-    conn = sqlite3.connect("inventory.db")
+    conn = psycopg2.connect(
+        dbname=db_name, user=user, password=password, host=host, port=port
+    )
     cursor = conn.cursor()
 
     # Retrieve order details
@@ -38,7 +45,6 @@ def verify_delivery(order_id, delivered_items):
         ordered_quantity = order_item_map[item_id]
         if received_quantity != ordered_quantity:
             # Allow user to confirm quantity
-            # ... user input logic
 
             # Update item quantity
             cursor.execute(
