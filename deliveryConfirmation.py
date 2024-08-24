@@ -1,7 +1,6 @@
-import sqlite3
+import psycopg2
 
-
-def record_delivery(delivery_data):
+def record_delivery(delivery_data, db_name, user, password, host, port):
     """Records a delivery, updating inventory and order status.
 
     Args:
@@ -11,11 +10,17 @@ def record_delivery(delivery_data):
                 - item_id (int): The ID of the item.
                 - quantity (int): The quantity of the item being delivered.
                 - confirmed_quantity (int, optional): The confirmed quantity of the item being delivered (default: None).
+        db_name (str): PostgreSQL database name.
+        user (str): Database username.
+        password (str): Database password.
+        host (str): Database host.
+        port (int): Database port.
     """
-    
-    conn = sqlite3.connect("inventory.db")
-    cursor = conn.cursor()
 
+    conn = psycopg2.connect(
+        dbname=db_name, user=user, password=password, host=host, port=port
+    )
+    cursor = conn.cursor()
 
     # Retrieve ordered quantities
     cursor.execute(
@@ -35,7 +40,7 @@ def record_delivery(delivery_data):
             ordered_quantity = order_item_map[item_id]
             if confirmed_quantity is None:
                 confirmed_quantity = delivered_quantity
-                
+
             if confirmed_quantity > ordered_quantity:
                 raise ValueError(
                     f"Delivered quantity exceeds ordered quantity for item {item_id}"
