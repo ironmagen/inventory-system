@@ -1,3 +1,5 @@
+# flaskConfig.py
+
 import os
 
 # Database configuration
@@ -13,3 +15,6 @@ DEBUG = os.environ.get('DEBUG', True)
 
 # Other configurations
 ITEMS_PER_PAGE = 10
+
+# PostgreSQL connection string
+POSTGRES_CONNECTION_STRING = f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD} host={DB_HOST} port={DB_PORT}"
