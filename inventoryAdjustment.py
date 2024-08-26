@@ -50,7 +50,7 @@ def create_vendor_totals_table(conn):
     conn.commit()
     cursor.close()
 
-def adjustInventory(adjustments, userId=None):
+def adjust_inventory(adjustments, userId=None):
     """Adjusts inventory quantities based on user input.
 
     Args:
@@ -72,8 +72,8 @@ def adjustInventory(adjustments, userId=None):
     create_vendor_totals_table(conn)
 
     for adjustment in adjustments:
-        itemId = adjustment["itemId"]
-        newQuantity = adjustment["newQuantity"]
+        item_id = adjustment["itemId"]
+        new_quantity = adjustment["newQuantity"]
         category = adjustment.get("category")
         vendor = adjustment.get("vendor")
 
@@ -82,14 +82,14 @@ def adjustInventory(adjustments, userId=None):
         result = cursor.fetchone()
         if not result:
             raise ValueError(f"Item with ID {itemId} not found")
-        currentQuantity = result[0]
+        current_quantity = result[0]
 
         # Calculate difference
-        quantityDifference = newQuantity - currentQuantity
+        quantity_difference = new_quantity - current_quantity
 
         # Update item quantity
         cursor.execute(
-            "UPDATE items SET quantity = ? WHERE item_id = ?", (newQuantity, itemId)
+            "UPDATE items SET quantity = ? WHERE item_id = ?", (new_quantity, item_id)
         )
 
         # Log adjustment
@@ -99,11 +99,11 @@ def adjustInventory(adjustments, userId=None):
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                userId,
-                itemId,
-                currentQuantity,
-                newQuantity,
-                quantityDifference,
+                user_id,
+                item_id,
+                current_quantity,
+                new_quantity,
+                quantity_qifference,
                 category,
                 vendor,
             ),
@@ -113,20 +113,20 @@ def adjustInventory(adjustments, userId=None):
         if category:
             cursor.execute(
                 "UPDATE category_totals SET total_quantity = total_quantity + ? WHERE category_id = ?",
-                (quantityDifference, category),
+                (quantity_difference, category),
             )
             cursor.execute(
                 "INSERT OR IGNORE INTO category_totals (category_id, total_quantity) VALUES (?, ?)",
-                (category, quantityDifference),
+                (category, quantity_difference),
             )
         if vendor:
             cursor.execute(
                 "UPDATE vendor_totals SET total_quantity = total_quantity + ? WHERE vendor_id = ?",
-                (quantityDifference, vendor),
+                (quantity_difference, vendor),
             )
             cursor.execute(
                 "INSERT OR IGNORE INTO vendor_totals (vendor_id, total_quantity) VALUES (?, ?)",
-                (vendor, quantityDifference),
+                (vendor, quantity_difference),
             )
 
     conn.commit()
