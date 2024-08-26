@@ -2,8 +2,7 @@ import psycopg2
 import datetime
 import uuid
 from typing import List
-
-import pdfkit  # Assuming installed using pip
+import pdfkit
 
 
 # Connection function
@@ -48,9 +47,6 @@ def generate_invoice(conn, order_id):
     """
     cursor = conn.cursor()
 
-    # ... (rest of the logic remains largely the same)
-    # Adjust data types based on PostgreSQL schema
-
     # Generate invoice PDF
     invoice_data = {
         "invoice_number": invoice_number,
@@ -77,8 +73,7 @@ def generate_invoice_html(invoice_data: dict[str, any]) -> str:
     Returns:
         The HTML content as a string.
     """
-    # Implement logic to generate the HTML content using invoice_data
-    # ... (use a templating engine or string formatting)
+
     return html_content
 
 
