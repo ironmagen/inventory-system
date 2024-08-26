@@ -6,7 +6,7 @@ import orderDB
 import deliveryDB
 import invoiceDB
 import datetime
-from flaskConfig import DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT, SECRET_KEY, DEBUG
+from flaskConfig import POSTGRES_CONNECTION_STRING, SECRET_KEY, DEBUG
 
 
 app = Flask(__name__)
@@ -18,11 +18,7 @@ app.config['DEBUG'] = DEBUG
 def get_db_connection():
     try:
         conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
+           POSTGRES_CONNECTION_STRING 
         )
         conn.autocommit = True
         return conn
