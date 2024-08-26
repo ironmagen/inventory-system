@@ -6,13 +6,11 @@ import orderDB
 import deliveryDB
 import invoiceDB
 import datetime
-from flaskConfig import POSTGRES_CONNECTION_STRING, SECRET_KEY, DEBUG
+from flaskConfig import POSTGRES_CONNECTION_STRING, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 
 
 app = Flask(__name__)
-
-app.config['SECRET_KEY'] = SECRET_KEY
-app.config['DEBUG'] = DEBUG
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Database connection
 def get_db_connection():
