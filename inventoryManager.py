@@ -1,149 +1,192 @@
+from flask import Flask, render_template, request, redirect, url_for, flash
 import psycopg2
+import itemsDB
+import vendorsDB
+import orderDB
 import deliveryDB
 import invoiceDB
-import itemsDB
-import orderDB
-import vendorsDB
 import datetime
 
+app = Flask(__name__)
+
+# Database connection
+def get_db_connection():
+    try:
+        conn = psycopg2.connect(
+            dbname="database_name",
+            user="username",
+            password="password",
+            host="hostname",
+            port="port"
+        )
+        conn.autocommit = True
+        return conn
+    except psycopg2.Error as e:
+        error_message = f"Database connection error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
+
+# Create database and tables (if not already created)
 def create_database():
-    """Creates the database and necessary tables."""
-    with psycopg2.connect(
-        dbname="your_database_name",
-        user="your_username",
-        password="your_password",
-        host="your_host",
-        port="your_port"
-    ) as conn:
+    try:
+        conn = get_db_connection()
         itemsDB.create_tables(conn)
         vendorsDB.create_tables(conn)
         orderDB.create_tables(conn)
         deliveryDB.create_table(conn)
         invoiceDB.create_table(conn)
+        conn.close()
+    except psycopg2.Error as e:
+        error_message = f"Database creation error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
+# Item routes
+@app.route('/items')
+def items():
+    try:
+        conn = get_db_connection()
+        items = itemsDB.get_all_items(conn)
+        conn.close()
+        return render_template('items.html', items=items)
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
-def add_item(item_data):
-    """Adds a new item to the inventory database.
+@app.route('/add_item', methods=['POST'])
+def add_item():
+    try:
+        item_data = {
+            'name': request.form['name'],
+            'description': request.form['description'],
+            'price': float(request.form['price']),
+            'quantity': int(request.form['quantity']),
+            'reorder_point': int(request.form['reorder_point'])
+        }
+        conn = get_db_connection()
+        itemsDB.add_item(conn, item_data)
+        conn.close()
+        return redirect(url_for('items'))
+    except KeyError as e:
+        return "Missing form data: " + str(e), 400
+    except ValueError as e:
+        return "Invalid form data: " + str(e), 400
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
-    Args:
-        item_data: A dictionary containing item information like name, description, quantity, price, and reorder point.
+# Vendor routes
+@app.route('/vendors')
+def vendors():
+    try:
+        conn = get_db_connection()
+        vendors = vendorsDB.get_all_vendors(conn)
+        conn.close()
+        return render_template('vendors.html', vendors=vendors)
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
-    Raises:
-        Exception: If an error occurs while adding the item.
-    """
-    with psycopg2.connect(
-        dbname="your_database_name",
-        user="your_username",
-        password="your_password",
-        host="your_host",
-        port="your_port"
-    ) as conn:
-        try:
-            itemsDB.add_item(conn, item_data)
-            conn.execute(
-                "INSERT INTO item_price_history (item_id, new_price, change_date) VALUES (?, ?, ?)",
-                (item_data["id"], item_data["price"], datetime.datetime.now()),
-            )
-            conn.commit()
-        except Exception as e:
-            raise Exception(f"Error adding item: {e}")
+@app.route('/add_vendor', methods=['POST'])
+def add_vendor():
+    try:
+        vendor_data = {
+            'name': request.form['name'],
+            'address': request.form['address'],
+            'phone': request.form['phone'],
+            'email': request.form['email']
+        }
+        conn = get_db_connection()
+        vendorsDB.add_vendor(conn, vendor_data)
+        conn.close()
+        return redirect(url_for('vendors'))
+    except KeyError as e:
+        return "Missing form data: " + str(e), 400
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
+# Order routes
+@app.route('/orders')
+def orders():
+    try:
+        conn = get_db_connection()
+        orders = orderDB.get_all_orders(conn)
+        conn.close()
+        return render_template('orders.html', orders=orders)
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
-def add_vendor(vendor_data):
-    """Adds a new vendor to the inventory database.
+@app.route('/add_order', methods=['POST'])
+def add_order():
+    try:
+        order_data = {
+            'order_date': datetime.datetime.now(),
+            'vendor_id': request.form['vendor_id'],
+            'items': request.form.getlist('items')
+        }
+        conn = get_db_connection()
+        orderDB.place_order(conn, order_data)
+        conn.close()
+        return redirect(url_for('orders'))
+    except KeyError as e:
+        return "Missing form data: " + str(e), 400
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
-    Args:
-        vendor_data: A dictionary containing vendor information like name, address, phone number, etc.
+ #Delivery routes
+@app.route('/deliveries')
+def deliveries():
+    try:
+        conn = get_db_connection()
+        deliveries = deliveryDB.get_all_deliveries(conn)
+        conn.close()
+        return render_template('deliveries.html', deliveries=deliveries)
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
-    Raises:
-        Exception: If an error occurs while adding the vendor.
-    """
-    with psycopg2.connect(
-        dbname="your_database_name",
-        user="your_username",
-        password="your_password",
-        host="your_host",
-        port="your_port"
-    ) as conn:
-        try:
-            vendorsDB.add_vendor(conn, vendor_data)
-            conn.commit()
-        except Exception as e:
-            raise Exception(f"Error adding vendor: {e}")
+@app.route('/add_delivery', methods=['POST'])
+def add_delivery():
+    try:
+        delivery_data = {
+            'delivery_date': datetime.datetime.now(),
+            'order_id': request.form['order_id']
+        }
+        conn = get_db_connection()
+        deliveryDB.record_delivery(conn, delivery_data)
+        conn.close()
+        return redirect(url_for('deliveries'))
+    except KeyError as e:
+        return "Missing form data: " + str(e), 400
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
+# Invoice routes
+@app.route('/invoices')
+def invoices():
+    try:
+        conn = get_db_connection()
+        invoices = invoiceDB.get_all_invoices(conn)
+        conn.close()
+        return render_template('invoices.html', invoices=invoices)
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
-def place_order(order_data):
-    """Places a new order.
-
-    Args:
-        order_data: A dictionary containing order information like items, vendor, order date, etc.
-
-    Raises:
-        Exception: If an error occurs while placing the order.
-    """
-    with psycopg2.connect(
-        dbname="your_database_name",
-        user="your_username",
-        password="your_password",
-        host="your_host",
-        port="your_port"
-    ) as conn:
-        try:
-            orderDB.place_order(conn, order_data)
-            conn.commit()
-        except Exception as e:
-            raise Exception(f"Error placing order: {e}")
-
-
-def record_delivery(delivery_data):
-    """Records a new delivery.
-
-    Args:
-        delivery_data: A dictionary containing delivery information like delivery date, order ID, etc.
-
-    Raises:
-        Exception: If an error occurs while recording the delivery.
-    """
-    with psycopg2.connect(
-        dbname="your_database_name",
-        user="your_username",
-        password="your_password",
-        host="your_host",
-        port="your_port"
-    ) as conn:
-        try:
-            deliveryDB.record_delivery(conn, delivery_data)
-            conn.commit()
-        except Exception as e:
-            raise Exception(f"Error recording delivery: {e}")
-
-
+@app.route('/generate_invoice/<int:order_id>')
 def generate_invoice(order_id):
-    """Generates an invoice for the specified order.
+    try:
+        conn = get_db_connection()
+        invoiceDB.generate_invoice(conn, order_id)
+        conn.close()
+        return redirect(url_for('invoices'))
+    except psycopg2.Error as e:
+        error_message = f"Database error: {e.pgerror}"
+        return render_template('error.html', error_message=error_message), 500
 
-    Args:
-        order_id: The ID of the order.
-
-    Raises:
-        Exception: If an error occurs while generating the invoice.
-    """
-    with psycopg2.connect(
-        dbname="your_database_name",
-        user="your_username",
-        password="your_password",
-        host="your_host",
-        port="your_port"
-    ) as conn:
-        try:
-            invoiceDB.generate_invoice(conn, order_id)
-            conn.commit()
-        except Exception as e:
-            raise Exception(f"Error generating invoice: {e}")
-
-
-# ... other functions for different functionalities
-
-if __name__ == "__main__":
+# Run the Flask app
+if __name__ == '__main__':
     create_database()
-    # Example usage:
-    # ...
+    app.run(debug=True)
