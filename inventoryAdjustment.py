@@ -72,16 +72,16 @@ def adjust_inventory(adjustments, userId=None):
     create_vendor_totals_table(conn)
 
     for adjustment in adjustments:
-        item_id = adjustment["itemId"]
-        new_quantity = adjustment["newQuantity"]
+        item_id = adjustment["item_id"]
+        new_quantity = adjustment["new_quantity"]
         category = adjustment.get("category")
         vendor = adjustment.get("vendor")
 
         # Retrieve current quantity
-        cursor.execute("SELECT quantity FROM items WHERE item_id = ?", (itemId,))
+        cursor.execute("SELECT quantity FROM items WHERE item_id = ?", (item_id,))
         result = cursor.fetchone()
         if not result:
-            raise ValueError(f"Item with ID {itemId} not found")
+            raise ValueError(f"Item with ID {item_id} not found")
         current_quantity = result[0]
 
         # Calculate difference
@@ -99,11 +99,10 @@ def adjust_inventory(adjustments, userId=None):
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                user_id,
                 item_id,
                 current_quantity,
                 new_quantity,
-                quantity_qifference,
+                quantity_difference,
                 category,
                 vendor,
             ),
