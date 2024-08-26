@@ -18,3 +18,7 @@ ITEMS_PER_PAGE = 10
 
 # PostgreSQL connection string
 POSTGRES_CONNECTION_STRING = f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD} host={DB_HOST} port={DB_PORT}"
+
+# File upload configurations
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
