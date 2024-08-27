@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import psycopg2
+import os
 import itemsDB
 import vendorsDB
 import orderDB
@@ -11,6 +12,31 @@ from flaskConfig import POSTGRES_CONNECTION_STRING, UPLOAD_FOLDER, ALLOWED_EXTEN
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Extracted functions
+
+def get_form_data():
+    return {
+        'name': request.form['name'],
+        'description': request.form['description'],
+        'price': float(request.form['price']),
+        'quantity': int(request.form['quantity']),
+        'reorder_point': int(request.form['reorder_point'])
+    }
+
+def execute_db_query(query, params):
+    conn = psycopg2.connect(POSTGRES_CONNECTION_STRING)
+    cur = conn.cursor()
+    cur.execute(query, params)
+    conn.commit()
+    conn.close()
+
+def handle_error(e):
+    return str(e), 400
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 # Database connection
 def get_db_connection():
@@ -38,39 +64,79 @@ def create_database():
         error_message = f"Database creation error: {e.pgerror}"
         return render_template('error.html', error_message=error_message), 500
 
-# Item routes
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/items')
 def items():
-    try:
-        conn = get_db_connection()
-        items = itemsDB.get_all_items(conn)
-        conn.close()
-        return render_template('items.html', items=items)
-    except psycopg2.Error as e:
-        error_message = f"Database error: {e.pgerror}"
-        return render_template('error.html', error_message=error_message), 500
+    conn = psycopg2.connect(POSTGRES_CONNECTION_STRING)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM items")
+    items = cur.fetchall()
+    conn.close()
+    return render_template('items.html', items=items)
 
-@app.route('/add_item', methods=['POST'])
+@app.route('/add_item', methods=['GET', 'POST'])
 def add_item():
+    if request.method == 'POST':
+        try:
+            item_data = get_form_data()
+            execute_db_query("INSERT INTO items (name, description, price, quantity, reorder_point) VALUES (%s, %s, %s, %s, %s)", 
+                             (item_data['name'], item_data['description'], item_data['price'], item_data['quantity'], item_data['reorder_point']))
+            flash('Item added successfully', 'success')
+            return redirect(url_for('items'))
+        except Exception as e:
+            return handle_error(e)
+    return render_template('add_item.html')
+
+@app.route('/edit_item/<int:item_id>', methods=['GET', 'POST'])
+def edit_item(item_id):
+    if request.method == 'POST':
+        try:
+            item_data = get_form_data()
+            execute_db_query("UPDATE items SET name=%s, description=%s, price=%s, quantity=%s, reorder_point=%s WHERE id=%s", 
+                             (item_data['name'], item_data['description'], item_data['price'], item_data['quantity'], item_data['reorder_point'], item_id))
+            flash('Item updated successfully', 'success')
+            return redirect(url_for('items'))
+        except Exception as e:
+            return handle_error(e)
+    conn = psycopg2.connect(POSTGRES_CONNECTION_STRING)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM items WHERE id=%s", (item_id,))
+    item = cur.fetchone()
+    conn.close()
+    return render_template('edit_item.html', item=item)
+
+@app.route('/delete_item/<int:item_id>', methods=['POST'])
+def delete_item(item_id):
     try:
-        item_data = {
-            'name': request.form['name'],
-            'description': request.form['description'],
-            'price': float(request.form['price']),
-            'quantity': int(request.form['quantity']),
-            'reorder_point': int(request.form['reorder_point'])
-        }
-        conn = get_db_connection()
-        itemsDB.add_item(conn, item_data)
-        conn.close()
+        execute_db_query("DELETE FROM items WHERE id=%s", (item_id,))
+        flash('Item deleted successfully', 'success')
         return redirect(url_for('items'))
-    except KeyError as e:
-        return "Missing form data: " + str(e), 400
-    except ValueError as e:
-        return "Invalid form data: " + str(e), 400
-    except psycopg2.Error as e:
-        error_message = f"Database error: {e.pgerror}"
-        return render_template('error.html', error_message=error_message), 500
+    except Exception as e:
+        return handle_error(e)
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            flash('No selected file', 'error')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(filename)
+            flash('File uploaded successfully', 'success')
+            return redirect(url_for('items'))
+        else:
+            flash('Invalid file type', 'error')
+            return redirect(request.url)
+    return render_template('upload.html')
+
 
 # Vendor routes
 @app.route('/vendors')
